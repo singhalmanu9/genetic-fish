@@ -7,6 +7,10 @@ class Fish{
   float[] dna = new float[1000];
   boolean dead = false;
   boolean hit = false;
+  boolean food = false;
+  
+  float closest = -1;
+  float fitness = 0;
   
   int curr = 0;
   
@@ -19,17 +23,9 @@ class Fish{
     }
   }
   
-  void onDead() {
-    if (hit) {
-      println("I hit a wall");
-    } else {
-      println("I made it to the end!");
-    }
-  }
-  
   void move() {
     if (dead) {
-      onDead();
+      calcFitness();
     } else {
       if (curr < dna.length) {
         PVector next = PVector.fromAngle(angle).mult(10);
@@ -38,20 +34,40 @@ class Fish{
         curr += 1;
       } else {
         dead = true;
-        onDead();
       }
       
-      if (pos.x < 0) {
-        dead = true;
-        hit = true;
-        onDead();
-      }
+      hitWall();
+      foundFood();
+      float d = dist2(pos.x, pos.y, foodX, foodY);
+      closest = (closest != -1) ? min(closest, d) : d;
       
       if (pos.y < 0 || pos.y > width) {
         angle = -angle;
       }
     }
     
+  }
+  
+  void calcFitness() {
+    if (hit) {
+      fitness = -1;
+    }
+    fitness = closest;
+  }
+  
+  void hitWall() {
+    if (pos.x < 0 || (pos.x > barrierX && pos.x < barrierX + barrierW
+      && pos.y > barrierY && pos.y > barrierY + barrierH)) {
+      dead = true;
+      hit = true;
+    }
+  }
+  
+  void foundFood() {
+    if (dist2(pos.x, pos.y, foodX, foodY) < 100) {
+      food = true;
+      dead = true;
+    }
   }
   
   void printDNA() {
